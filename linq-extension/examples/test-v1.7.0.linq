@@ -30,6 +30,7 @@ void Main()
     };
     Console.WriteLine(JsonSerializer.Serialize(items));
     Console.WriteLine();
+    items.Dump();
     
     // Test 3: Plain Text
     Console.WriteLine("Test 3: Plain Text Output");
