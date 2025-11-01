@@ -1,0 +1,13 @@
+{
+  "scopeName": "source.csharp",
+  "name": "C#",
+  "fileTypes": [
+    "cs",
+    "linq"
+  ],
+  "patterns": [
+    {
+      "include": "source.cs"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="128" height="128" rx="16" fill="#007ACC"/>
+  
+  <!-- Main Icon -->
+  <g transform="translate(16, 16)">
+    <!-- LinqPad "L" -->
+    <rect x="16" y="16" width="8" height="64" fill="white"/>
+    <rect x="16" y="72" width="32" height="8" fill="white"/>
+    
+    <!-- Play button triangle -->
+    <polygon points="56,32 56,64 80,48" fill="white"/>
+    
+    <!-- Code brackets -->
+    <path d="M8,24 L16,32 L8,40" stroke="white" stroke-width="2" fill="none"/>
+    <path d="M88,24 L80,32 L88,40" stroke="white" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Bottom accent -->
+  <rect x="0" y="112" width="128" height="16" rx="0 0 16 16" fill="#005A9E"/>
+</svg>

@@ -1,0 +1,161 @@
+{
+  "name": "linqpad-runner",
+  "displayName": "LinqPad Runner",
+  "description": "Execute LinqPad .linq files in VS Code using LPRun command-line tool with C# syntax highlighting",
+  "version": "1.7.0",
+  "publisher": "ThomasAdrian",
+  "icon": "ofPP1XEw_400x400.jpg",
+  "author": {
+    "name": "Thomas Adrian",
+    "email": "tadrian67@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/your-username/linqpad-runner#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tadrian/linqpad-runner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tadrian/linqpad-runner/issues"
+  },
+  "keywords": [
+    "linqpad",
+    "linq",
+    "lprun",
+    "csharp",
+    "c#",
+    "query",
+    "runner",
+    "execution",
+    "command-line",
+    "syntax-highlighting"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "galleryBanner": {
+    "color": "#007ACC",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:linq"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "linq",
+        "aliases": [
+          "LinqPad",
+          "linq"
+        ],
+        "extensions": [
+          ".linq"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "linq",
+        "scopeName": "source.csharp",
+        "path": "./syntaxes/csharp.tmGrammar.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "linq-runner.run",
+        "title": "Run LinqPad Script",
+        "icon": "$(play)"
+      },
+      {
+        "command": "linq-runner.openExamples",
+        "title": "Open LinqPad Examples",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "linq-runner.newFile",
+        "title": "New LinqPad File (Basic)",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "linq-runner.newDumpifyFile",
+        "title": "New LinqPad File (with Dumpify)",
+        "icon": "$(file-add)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceExtname == .linq",
+          "command": "linq-runner.run",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "linq-runner.run",
+          "when": "resourceExtname == .linq"
+        },
+        {
+          "command": "linq-runner.openExamples"
+        },
+        {
+          "command": "linq-runner.newFile"
+        },
+        {
+          "command": "linq-runner.newDumpifyFile"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "LinqPad Runner",
+      "properties": {
+        "linqpadRunner.lprunPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to LPRun.exe (LinqPad command-line tool). Leave empty for auto-detection. Common paths: LPRun9: 'C:\\Zips\\Apps\\Linqpad9\\LPRun9-x64.exe', LPRun8: 'C:\\Program Files\\LINQPad8\\LPRun8-x64.exe', LPRun7: 'C:\\Program Files\\LINQPad7\\LPRun7.exe'",
+          "scope": "machine-overridable"
+        },
+        "linqpadRunner.convertDumpCalls": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically inject Dumpify NuGet package support for enhanced output formatting. When enabled, scripts using .Dump(), .DumpText(), .DumpConsole(), .DumpDebug(), and .DumpTrace() methods will automatically include Dumpify package and namespace.",
+          "scope": "resource"
+        },
+        "linqpadRunner.useInteractiveViewer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show results in interactive webview panel with JSON tree viewer, sortable tables, and export functionality. When disabled, results only appear in the output channel.",
+          "scope": "resource"
+        },
+        "linqpadRunner.outputDestination": {
+          "type": "string",
+          "enum": ["both", "viewerOnly", "consoleOnly"],
+          "default": "both",
+          "description": "Choose where to send output: 'both' (console + viewer), 'viewerOnly' (just interactive viewer), 'consoleOnly' (traditional output channel)",
+          "enumDescriptions": [
+            "Show output in both console and interactive viewer",
+            "Show output only in interactive viewer (cleaner)",
+            "Show output only in console output channel (traditional)"
+          ],
+          "scope": "resource"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  }
+}

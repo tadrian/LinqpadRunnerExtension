@@ -1,0 +1,253 @@
+import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
+
+export function activate(context: vscode.ExtensionContext) {
+    console.log('LinqPad Runner extension is now active!');
+
+    // Function to detect if content contains Dump() calls or Dumpify methods
+    function containsDumpCalls(content: string): boolean {
+        return /\.(Dump|DumpText|DumpConsole|DumpDebug|DumpTrace)\(\)|^[^\/]*\b(Dump|DumpText|DumpConsole|DumpDebug|DumpTrace)\(|ColorConfig|DumpColor/gm.test(content);
+    }
+
+    // Function to inject Dumpify package reference and using statement automatically
+    function injectDumpSupport(content: string): string {
+        const lines = content.split('\n');
+        const queryLineIndex = lines.findIndex(line => line.trim().startsWith('<Query'));
+        
+        if (queryLineIndex === -1) {
+            // No Query tag found, add at the beginning
+            const usingStatement = 'using Dumpify;';
+            return usingStatement + '\n\n' + content;
+        }
+        
+        // Check if already has NuGet reference for Dumpify
+        const hasDumpifyRef = content.includes('<NuGetReference>Dumpify</NuGetReference>') || 
+                              content.includes('Dumpify');
+        
+        if (hasDumpifyRef) {
+            return content;
+        }
+        
+        // Find the end of the Query tag
+        const queryLine = lines[queryLineIndex];
+        const isQueryTagClosed = queryLine.includes('</Query>') || queryLine.includes('/>');
+        
+        let nugetRef: string;
+        let usingStatement: string;
+        
+        if (isQueryTagClosed) {
+            // Self-closing or single-line Query tag
+            if (queryLine.includes('/>')) {
+                // Self-closing tag - replace with multi-line
+                lines[queryLineIndex] = queryLine.replace('/>', '>');
+                nugetRef = '  <NuGetReference>Dumpify</NuGetReference>';
+                lines.splice(queryLineIndex + 1, 0, nugetRef, '</Query>');
+            } else {
+                // Has </Query> on same line
+                lines[queryLineIndex] = queryLine.replace('</Query>', '');
+                nugetRef = '  <NuGetReference>Dumpify</NuGetReference>';
+                lines.splice(queryLineIndex + 1, 0, nugetRef, '</Query>');
+            }
+        } else {
+            // Multi-line Query tag - find the closing tag
+            const queryEndIndex = lines.findIndex((line, index) => 
+                index > queryLineIndex && line.trim() === '</Query>'
+            );
+            
+            if (queryEndIndex !== -1) {
+                nugetRef = '  <NuGetReference>Dumpify</NuGetReference>';
+                lines.splice(queryEndIndex, 0, nugetRef);
+            } else {
+                // No closing tag found, add it
+                nugetRef = '  <NuGetReference>Dumpify</NuGetReference>';
+                lines.splice(queryLineIndex + 1, 0, nugetRef, '</Query>');
+            }
+        }
+        
+        // Add using statement after Query block
+        const finalQueryEndIndex = lines.findIndex((line, index) => 
+            index > queryLineIndex && line.trim() === '</Query>'
+        );
+        
+        if (finalQueryEndIndex !== -1) {
+            // Check if using Dumpify already exists
+            const hasUsingStatement = lines.some(line => 
+                line.trim() === 'using Dumpify;' || line.includes('using Dumpify')
+            );
+            
+            if (!hasUsingStatement) {
+                usingStatement = 'using Dumpify;';
+                lines.splice(finalQueryEndIndex + 1, 0, '', usingStatement);
+            }
+        }
+        
+        return lines.join('\n');
+    }
+
+    // Register command for running LinqPad files
+    const disposable = vscode.commands.registerCommand('extension.runLinqPad', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active editor');
+            return;
+        }
+
+        const document = editor.document;
+        if (path.extname(document.fileName) !== '.linq') {
+            vscode.window.showErrorMessage('Please select a .linq file');
+            return;
+        }
+
+        // Check if the content needs Dumpify support injection
+        const originalContent = document.getText();
+        const conversionNeeded = containsDumpCalls(originalContent);
+        
+        let contentToRun = originalContent;
+        if (conversionNeeded) {
+            contentToRun = injectDumpSupport(originalContent);
+        }
+
+        // Save the processed content to a temporary file
+        const tempDir = path.join(path.dirname(document.fileName), '.vscode-linq-temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        const tempFileName = path.join(tempDir, `temp_${Date.now()}.linq`);
+        
+        try {
+            fs.writeFileSync(tempFileName, contentToRun, 'utf8');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to create temporary file: ${error}`);
+            return;
+        }
+
+        // Get configuration for LPRun path
+        const config = vscode.workspace.getConfiguration('linqpadRunner');
+        let lprunPath = config.get<string>('lprunPath');
+
+        if (!lprunPath) {
+            // Try common default paths
+            const defaultPaths = [
+                'C:\\Program Files\\LINQPad9\\LPRun9.exe',
+                'C:\\Program Files\\LINQPad8\\LPRun8.exe',
+                'C:\\Program Files\\LINQPad7\\LPRun7.exe',
+                'C:\\Program Files\\LINQPad6\\LPRun6.exe',
+                'C:\\Program Files\\LINQPad5\\LPRun.exe',
+                'C:\\Zips\\Apps\\Linqpad9\\LPRun9-x64.exe'
+            ];
+
+            for (const defaultPath of defaultPaths) {
+                if (fs.existsSync(defaultPath)) {
+                    lprunPath = defaultPath;
+                    break;
+                }
+            }
+
+            if (!lprunPath) {
+                vscode.window.showErrorMessage(
+                    'LPRun.exe not found. Please configure the path in settings (File > Preferences > Settings > LinqPad Runner > Lprun Path)'
+                );
+                return;
+            }
+        }
+
+        // Create output channel
+        const outputChannel = vscode.window.createOutputChannel('LinqPad Runner');
+        outputChannel.clear();
+        outputChannel.show();
+
+        // Always show header
+        outputChannel.appendLine('═══════════════════════════════════════════════════════════════');
+        outputChannel.appendLine('🚀 LinqPad Runner Extension v1.4.1 - Enhanced with Dumpify');
+        outputChannel.appendLine('   JSON output (.Dump()) + Beautiful ASCII tables (.DumpText())');
+        outputChannel.appendLine('═══════════════════════════════════════════════════════════════');
+        outputChannel.appendLine('');
+
+        if (conversionNeeded) {
+            outputChannel.appendLine('✨ Auto-injected Dumpify support (NuGet package + using statements)');
+            outputChannel.appendLine('   Now supports: .Dump(), .DumpText(), .DumpConsole(), ColorConfig, and more!');
+            outputChannel.appendLine('');
+        }
+        
+        outputChannel.appendLine(`Running: ${lprunPath} "${tempFileName}"`);
+        outputChannel.appendLine('---');
+        outputChannel.appendLine('---');
+
+        // Execute LPRun
+        const child = cp.spawn(lprunPath, [tempFileName], {
+            cwd: path.dirname(document.fileName)
+        });
+
+        child.stdout?.on('data', (data) => {
+            outputChannel.append(data.toString());
+        });
+
+        child.stderr?.on('data', (data) => {
+            outputChannel.append(data.toString());
+        });
+
+        child.on('close', (code) => {
+            outputChannel.appendLine('');
+            outputChannel.appendLine('---');
+            outputChannel.appendLine('---');
+            outputChannel.appendLine('✨ LinqPad Runner Extension - Get enhanced output!');
+            outputChannel.appendLine('   ⭐ Star us: https://github.com/your-username/linqpad-runner-extension');
+            outputChannel.appendLine('   📖 Docs: Auto-injection of Dumpify for beautiful JSON and ASCII tables');
+            outputChannel.appendLine('═══════════════════════════════════════════════════════════════');
+            outputChannel.appendLine(`Process exited with code ${code}`);
+            
+            // Clean up temporary file
+            try {
+                fs.unlinkSync(tempFileName);
+            } catch (error) {
+                console.log(`Could not delete temporary file: ${error}`);
+            }
+        });
+
+        child.on('error', (error) => {
+            outputChannel.appendLine(`Error: ${error.message}`);
+            vscode.window.showErrorMessage(`Failed to run LPRun: ${error.message}`);
+            
+            // Clean up temporary file
+            try {
+                fs.unlinkSync(tempFileName);
+            } catch (cleanupError) {
+                console.log(`Could not delete temporary file: ${cleanupError}`);
+            }
+        });
+    });
+
+    // Register command for opening examples
+    const openExamplesDisposable = vscode.commands.registerCommand('extension.openLinqPadExamples', () => {
+        const extensionPath = context.extensionPath;
+        const exampleFiles = [
+            { name: 'Hello World', file: 'HelloWorld.linq' },
+            { name: 'Dumpify Demo', file: 'DumpifyDemo.linq' }
+        ];
+
+        vscode.window.showQuickPick(
+            exampleFiles.map(example => ({
+                label: example.name,
+                description: example.file
+            })),
+            { placeHolder: 'Select an example to open' }
+        ).then(async (selection) => {
+            if (selection) {
+                const examplePath = path.join(extensionPath, '..', '..', selection.description);
+                try {
+                    const document = await vscode.workspace.openTextDocument(examplePath);
+                    await vscode.window.showTextDocument(document);
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Could not open example: ${error}`);
+                }
+            }
+        });
+    });
+
+    context.subscriptions.push(disposable, openExamplesDisposable);
+}
+
+export function deactivate() {}
