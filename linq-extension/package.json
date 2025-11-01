@@ -2,7 +2,7 @@
   "name": "linqpad-runner",
   "displayName": "LinqPad Runner",
   "description": "Execute LinqPad .linq files in VS Code using LPRun command-line tool with C# syntax highlighting",
-  "version": "1.7.0",
+  "version": "1.7.4",
   "publisher": "ThomasAdrian",
   "icon": "ofPP1XEw_400x400.jpg",
   "author": {
@@ -10,13 +10,13 @@
     "email": "tadrian67@gmail.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/your-username/linqpad-runner#readme",
+  "homepage": "https://github.com/tadrian/LinqpadRunnerExtension#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tadrian/linqpad-runner.git"
+    "url": "https://github.com/tadrian/LinqpadRunnerExtension.git"
   },
   "bugs": {
-    "url": "https://github.com/tadrian/linqpad-runner/issues"
+    "url": "https://github.com/tadrian/LinqpadRunnerExtension/issues"
   },
   "keywords": [
     "linqpad",

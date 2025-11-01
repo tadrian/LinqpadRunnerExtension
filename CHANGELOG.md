@@ -1,6 +1,10 @@
 # Change Log# Change Log# Change Log
 
+
+
 All notable changes to the LinqPad Runner extension will be documented in this file.All notable changes to the LinqPad Runner extension will be documented in this file.All notable changes to the LinqPad Runner extension will be documented in this file.
+
+
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
@@ -52,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Multi-Tab Support** - Switch between different outputs- **Multi-Tab Support** - Switch between different outputs
 
+
+
 #### Output Destination Control````json
 
 - `linqpadRunner.outputDestination` setting:
@@ -60,17 +66,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - `"viewerOnly"` - Show only in Interactive Viewer
 
-  - `"consoleOnly"` - Show only in output console- `linqpadRunner.outputDestination` setting: "type": "line",
+  - `"consoleOnly"` - Show only in output console- `linqpadRunner.outputDestination` setting:  "type": "line",
 
-#### F12 Navigation Features - `"both"` - Display in console and viewer (default) "title": "My Chart",
+
+
+#### F12 Navigation Features  - `"both"` - Display in console and viewer (default)  "title": "My Chart",
 
 - **Go to Definition** - Jump to method, class, property definitions
 
-- **#load File Support** - Navigate to referenced .linq files - `"viewerOnly"` - Show only in Interactive Viewer "labels": ["Jan", "Feb", "Mar"],
+- **#load File Support** - Navigate to referenced .linq files  - `"viewerOnly"` - Show only in Interactive Viewer  "labels": ["Jan", "Feb", "Mar"],
 
 - **NuGet Package Links** - Browse package documentation
 
-- **IntelliSense Features** - Hover for quick info, Ctrl+Shift+O for outline - `"consoleOnly"` - Show only in output console "data": [10, 20, 15]
+- **IntelliSense Features** - Hover for quick info, Ctrl+Shift+O for outline  - `"consoleOnly"` - Show only in output console  "data": [10, 20, 15]
+
+
 
 #### Other Features}
 
@@ -82,7 +92,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Smart Analysis** - Detects missing headers, namespaces- **Go to Definition** - Jump to method, class, property definitions
 
+
+
 ## [1.6.1] - 2024-12-15- **#load File Support** - Navigate to referenced .linq files#### Image Data Format
+
+
 
 ### 🐛 Bug Fixes- **NuGet Package Links** - Browse package documentation
 
@@ -90,17 +104,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved stability with edge case handling- **IntelliSense Features** - Hover for quick info, Ctrl+Shift+O for outline```json
 
+
+
 ## [1.6.0] - 2024-12-01{
 
-### 🎉 Initial Release#### Other Features "imageUrl": "https://...",
+
+
+### 🎉 Initial Release#### Other Features  "imageUrl": "https://...",
 
 - Execute .linq files from VS Code
 
-- LPRun integration- **C# Syntax Highlighting** for .linq files "caption": "Optional caption"
+- LPRun integration- **C# Syntax Highlighting** for .linq files  "caption": "Optional caption"
 
 - Basic output console
 
 - C# syntax highlighting- **One-Click Execution** with play button}
+
 
 - **Command Palette Integration** - Create files, run scripts```
 
@@ -118,7 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved stability with edge case handling}
 
-```
+````
 
 ## [1.6.0] - 2024-12-01
 
