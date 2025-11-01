@@ -550,6 +550,17 @@ To fix this:
             cwd: path.dirname(document.fileName)
         });
 
+        // Open the interactive viewer immediately with a running placeholder
+        // so users see the preview window while the process is still executing.
+        if (showViewer) {
+            try {
+                ResultViewer.show(context, '⏳ Running...', 'Running');
+            } catch (e) {
+                // Non-fatal: ensure runtime doesn't crash if viewer cannot open
+                console.log('Could not open ResultViewer immediately:', e);
+            }
+        }
+
         child.stdout?.on('data', (data) => {
             const output = data.toString();
             capturedOutput += output;

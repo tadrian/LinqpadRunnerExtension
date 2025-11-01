@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.8] - 2025-11-01
+
+- UI: Action buttons replaced with links (Close | Clear | Copy)
+- Split location toggle hidden
+- 'Running viewer' indicator removed after results
+- Bugfixes and polish for narrow UI
+
 ## [1.7.7] - 2025-11-01
 
 - Documentation cleanup and formatting improvements

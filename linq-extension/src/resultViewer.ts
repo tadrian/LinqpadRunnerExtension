@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 export class ResultViewer {
     private static currentPanel: vscode.WebviewPanel | undefined;
     private static results: any[] = [];
+    private static placement: 'right' | 'below' = 'right';
 
     public static show(context: vscode.ExtensionContext, output: string, label?: string) {
         const columnToShowIn = vscode.window.activeTextEditor
@@ -41,6 +42,9 @@ export class ResultViewer {
                         case 'export':
                             ResultViewer.exportToCsv(message.data);
                             break;
+                        case 'closeViewer':
+                            if (ResultViewer.currentPanel) ResultViewer.currentPanel.dispose();
+                            break;
                     }
                 },
                 undefined,
@@ -61,8 +65,27 @@ export class ResultViewer {
         // Send results to webview
         ResultViewer.currentPanel.webview.postMessage({
             type: 'updateResults',
-            results: ResultViewer.results
+            results: ResultViewer.results,
+            placement: ResultViewer.placement
         });
+    }
+
+    private static togglePlacement() {
+        if (!ResultViewer.currentPanel) return;
+        ResultViewer.placement = ResultViewer.placement === 'right' ? 'below' : 'right';
+        const column = ResultViewer.placement === 'right' ? vscode.ViewColumn.Beside : vscode.ViewColumn.One;
+        try {
+            ResultViewer.currentPanel.reveal(column);
+        } catch (e) {
+            console.log('Failed to reveal panel in requested column:', e);
+        }
+
+        // Notify webview so it can update the button icon/state
+        try {
+            ResultViewer.currentPanel.webview.postMessage({ type: 'placementChanged', placement: ResultViewer.placement });
+        } catch (e) {
+            // ignore
+        }
     }
 
     public static clear() {
@@ -430,8 +453,9 @@ export class ResultViewer {
     <div class="header">
         <h1>🔍 Interactive Results Viewer</h1>
         <div class="actions">
-            <button onclick="clearResults()">🗑️ Clear</button>
-            <button onclick="copyAll()">📋 Copy All</button>
+            <a class="action-link" onclick="closeViewer()">Close</a>
+            <a class="action-link" onclick="clearResults()">Clear</a>
+            <a class="action-link" onclick="copyAll()">Copy</a>
         </div>
     </div>
 
@@ -450,6 +474,10 @@ export class ResultViewer {
                 renderResults();
             }
         });
+
+        function closeViewer() {
+            vscode.postMessage({ type: 'closeViewer' });
+        }
 
         function renderResults() {
             if (results.length === 0) {
@@ -694,6 +722,20 @@ export class ResultViewer {
         function copyAll() {
             const text = results.map(r => \`\${r.label}:\\n\${r.raw}\`).join('\\n\\n');
             vscode.postMessage({ type: 'copy', text });
+        }
+        function togglePlacement() {
+            vscode.postMessage({ type: 'togglePlacement' });
+        }
+        function updatePlacementButton(placement) {
+            const btn = document.getElementById('placementBtn');
+            if (!btn) return;
+            if (placement === 'right') {
+                btn.textContent = '↔️ Right';
+                btn.title = 'Show viewer to the right of the editor';
+            } else {
+                btn.textContent = '↕️ Below';
+                btn.title = 'Show viewer below the editor';
+            }
         }
         function escapeHtml(text) {
             const div = document.createElement('div');
