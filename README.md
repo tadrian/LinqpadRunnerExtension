@@ -1,23 +1,43 @@
 # LinqPad Runner for VS Code
 
-Execute .linq files directly in VS Code using LinqPad's command-line tool.
+Execute `.linq` files directly in VS Code using LinqPad's LPRun tool.
 
 ## Features
 
-- Interactive Results Viewer with JSON trees and sortable tables
+- Interactive Results Viewer: JSON trees, sortable tables
 - C# Syntax Highlighting
 - F12 Go to Definition
 - One-Click Execution
+- Output Destination Control
 
-## Installation
+## Version Highlights
 
-1. Install from VS Code marketplace
-2. Configure LPRun path in settings
+**1.7.1**
 
-## Usage
+- Maintenance: GitHub links corrected
 
-Open a .linq file and click the play button to execute.
+**1.7.0**
 
-## License
+- Interactive Results Viewer
+- JSON tree visualization
+- Sortable tables
+- CSV export
+- Collapsible sections
+- Multi-tab support
 
-MIT
+**1.6.1**
+
+- F12 navigation
+- #load file support
+- NuGet package links
+- IntelliSense features
+
+**1.6.0**
+
+- C# syntax highlighting
+- One-click execution
+- Command palette integration
+
+---
+
+MIT License

@@ -1,49 +1,43 @@
 # LinqPad Runner for VS Code
 
-Execute `.linq` files directly in VS Code using LinqPad's command-line tool (LPRun) with enhanced Dumpify support.
-
-## Installation
-
-1. Install from VS Code marketplace: Search "LinqPad Runner"
-2. Configure LPRun path in settings
-
-**Common Paths:**
-- LPRun9: `C:\Program Files\LINQPad9\LPRun9-x64.exe`
-- LPRun8: `C:\Program Files\LINQPad8\LPRun8-x64.exe`
+Execute `.linq` files directly in VS Code using LinqPad's LPRun tool.
 
 ## Features
 
-- Interactive Results Viewer with JSON trees and sortable tables
-- C# Syntax Highlighting for `.linq` files  
-- One-Click Execution with play button
-- F12 Go to Definition navigation
+- Interactive Results Viewer: JSON trees, sortable tables
+- C# Syntax Highlighting
+- F12 Go to Definition
+- One-Click Execution
 - Output Destination Control
 
-## Enhanced Dumpify Support
+## Version Highlights
 
-Auto-injection of Dumpify methods:
+**1.7.1**
 
-| Method | VS Code Extension | Direct LPRun |
-| ------ | ----------------- | ------------ |
-| `.Dump()` | ✅ Works | ✅ Works |
-| `.DumpText()` | ✅ Auto-injected | ❌ Manual |
-| `.DumpConsole()` | ✅ Auto-injected | ❌ Manual |
-| `.DumpDebug()` | ✅ Auto-injected | ❌ Manual |
+- Maintenance: GitHub links corrected
 
-## Configuration
+**1.7.0**
 
-```json
-"linqpadRunner.lprunPath": "C:\\Program Files\\LINQPad9\\LPRun9-x64.exe"
-"linqpadRunner.outputDestination": "both"
-```
+- Interactive Results Viewer
+- JSON tree visualization
+- Sortable tables
+- CSV export
+- Collapsible sections
+- Multi-tab support
 
-## Usage
+**1.6.1**
 
-1. Open a `.linq` file
-2. Press play button or `Ctrl+Shift+P` → "Run LinqPad Script"
-3. View results in Interactive Viewer
+- F12 navigation
+- #load file support
+- NuGet package links
+- IntelliSense features
 
-## Support
+**1.6.0**
 
-- GitHub: https://github.com/tadrian/LinqpadRunnerExtension
-- Issues: https://github.com/tadrian/LinqpadRunnerExtension/issues
+- C# syntax highlighting
+- One-click execution
+- Command palette integration
+
+---
+
+MIT License
