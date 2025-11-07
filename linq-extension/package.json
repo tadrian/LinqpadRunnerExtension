@@ -2,7 +2,7 @@
   "name": "linqpad-runner",
   "displayName": "LinqPad Runner",
   "description": "Execute LinqPad .linq files in VS Code using LPRun command-line tool with C# syntax highlighting",
-  "version": "1.7.8",
+  "version": "1.8.0",
   "publisher": "ThomasAdrian",
   "icon": "ofPP1XEw_400x400.jpg",
   "author": {
@@ -86,9 +86,52 @@
         "command": "linq-runner.newDumpifyFile",
         "title": "New LinqPad File (with Dumpify)",
         "icon": "$(file-add)"
+      },
+      {
+        "command": "linqpadExplorer.openFile",
+        "title": "Open LINQPad File",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "linqpadExplorer.refresh",
+        "title": "Refresh LINQPad Explorer",
+        "icon": "$(refresh)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "linqpad-explorer",
+          "title": "LINQPad",
+          "icon": "$(file-code)"
+        }
+      ]
+    },
+    "views": {
+      "linqpad-explorer": [
+        {
+          "id": "linqpadQueries",
+          "name": "Query Folders",
+          "icon": "$(file-directory)",
+          "contextualTitle": "LINQPad Scripts"
+        }
+      ]
+    },
     "menus": {
+      "view/title": [
+        {
+          "command": "linqpadExplorer.refresh",
+          "when": "view == linqpadQueries",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "linqpadExplorer.openFile",
+          "when": "view == linqpadQueries && viewItem == linqFile",
+          "group": "inline"
+        }
+      ],
       "editor/title": [
         {
           "when": "resourceExtname == .linq",
@@ -143,6 +186,36 @@
             "Show output only in interactive viewer (cleaner)",
             "Show output only in console output channel (traditional)"
           ],
+          "scope": "resource"
+        },
+        "linqpadRunner.queryLocations": {
+          "type": "array",
+          "default": [],
+          "description": "Additional query folder locations to display in the LINQPad Explorer. Locations from LINQPad's configuration are automatically included.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource"
+        },
+        "linqpadRunner.autoDetectQueryLocations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect and display query locations from LINQPad's configuration files.",
+          "scope": "resource"
+        },
+        "linqpadRunner.showRecentFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show recently opened LINQPad files in the explorer.",
+          "scope": "resource"
+        },
+        "linqpadRunner.excludePatterns": {
+          "type": "array",
+          "default": ["node_modules", ".git", "bin", "obj"],
+          "description": "Folder patterns to exclude from the LINQPad Explorer tree view.",
+          "items": {
+            "type": "string"
+          },
           "scope": "resource"
         }
       }

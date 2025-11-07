@@ -2,7 +2,9 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { LinqpadExplorer } from './linqpadExplorer';
 import { ResultViewer } from './resultViewer';
+import { LinqTreeItem } from './treeItems';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('LinqPad Runner extension is now active!');
@@ -1078,6 +1080,26 @@ async Task Main()
         }
     });
 
+    // Register LINQPad Explorer Tree View
+    const linqpadExplorer = new LinqpadExplorer();
+    const treeView = vscode.window.createTreeView('linqpadQueries', {
+        treeDataProvider: linqpadExplorer,
+        showCollapseAll: true
+    });
+
+    // Command to open a .linq file from the tree
+    const openFileCommand = vscode.commands.registerCommand('linqpadExplorer.openFile', async (item: LinqTreeItem) => {
+        if (item.resourceUri) {
+            const document = await vscode.workspace.openTextDocument(item.resourceUri);
+            await vscode.window.showTextDocument(document);
+        }
+    });
+
+    // Command to refresh the tree view
+    const refreshCommand = vscode.commands.registerCommand('linqpadExplorer.refresh', () => {
+        linqpadExplorer.refresh();
+    });
+
     context.subscriptions.push(
         disposable,
         openExamplesDisposable,
@@ -1085,7 +1107,10 @@ async Task Main()
         newDumpifyFileDisposable,
         definitionProvider,
         hoverProvider,
-        documentSymbolProvider
+        documentSymbolProvider,
+        treeView,
+        openFileCommand,
+        refreshCommand
     );
 }
 

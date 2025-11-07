@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-11-02
+
+- NEW: LINQPad Explorer sidebar pane
+- Browse all query locations from LINQPad configuration
+- Recent files section with quick access
+- Folder tree navigation with auto-discovery
+- Click to open .linq files directly
+
 ## [1.7.8] - 2025-11-01
 
 - UI: Action buttons replaced with links (Close | Clear | Copy)
