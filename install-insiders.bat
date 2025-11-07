@@ -40,24 +40,32 @@ if not defined VSIX_FILE (
 echo Found: %VSIX_FILE%
 echo.
 
-echo Step 4: Installing to VS Code Insiders...
+echo Step 4: Installing to VS Code Insiders (replacing existing version)...
 code-insiders --install-extension "%VSIX_FILE%" --force
 if %errorlevel% neq 0 (
     echo ERROR: Installation failed!
     echo.
     echo Make sure VS Code Insiders is installed and 'code-insiders' is in your PATH.
-    pause
+    pause>
     exit /b %errorlevel%
 )
 
 echo.
+echo Step 5: Reloading VS Code Insiders...
+code-insiders --command workbench.action.reloadWindow
+timeout /t 2 /nobreak >nul
+
+echo.
 echo ========================================
-echo SUCCESS! Extension installed!
+echo SUCCESS! Extension installed and reloaded!
 echo ========================================
 echo.
-echo Next steps:
-echo 1. Restart VS Code Insiders
-echo 2. Open a .linq file to activate the extension
-echo 3. Configure LPRun path in settings if needed
+echo IMPORTANT: For extension changes to fully take effect:
+echo 1. Close ALL VS Code Insiders windows completely
+echo 2. Reopen VS Code Insiders
+echo 3. Check the LINQPad Query Folders view for new features:
+echo    - New Script button in toolbar
+echo    - Right-click menu with "Add to Favorites"
+echo    - Favorites section at top when files are starred
 echo.
 pause

@@ -96,36 +96,6 @@
         "command": "linqpadExplorer.refresh",
         "title": "Refresh LINQPad Explorer",
         "icon": "$(refresh)"
-      },
-      {
-        "command": "linqpadExplorer.newScript",
-        "title": "New LINQPad Script",
-        "icon": "$(file-add)"
-      },
-      {
-        "command": "linqpadExplorer.addToFavorites",
-        "title": "Add to Favorites",
-        "icon": "$(star-empty)"
-      },
-      {
-        "command": "linqpadExplorer.removeFromFavorites",
-        "title": "Remove from Favorites",
-        "icon": "$(star-full)"
-      },
-      {
-        "command": "linqpadExplorer.filterFiles",
-        "title": "Filter Files",
-        "icon": "$(filter)"
-      },
-      {
-        "command": "linqpadExplorer.clearFilter",
-        "title": "Clear Filter",
-        "icon": "$(clear-all)"
-      },
-      {
-        "command": "linqpadExplorer.closeAllOpenFiles",
-        "title": "Close All Open Files",
-        "icon": "$(close-all)"
       }
     ],
     "viewsContainers": {
@@ -150,41 +120,16 @@
     "menus": {
       "view/title": [
         {
-          "command": "linqpadExplorer.filterFiles",
-          "when": "view == linqpadQueries",
-          "group": "navigation@0"
-        },
-        {
-          "command": "linqpadExplorer.newScript",
-          "when": "view == linqpadQueries",
-          "group": "navigation@1"
-        },
-        {
           "command": "linqpadExplorer.refresh",
           "when": "view == linqpadQueries",
-          "group": "navigation@2"
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "linqpadExplorer.openFile",
-          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile || viewItem == favoriteFile || viewItem == openFile)",
+          "when": "view == linqpadQueries && viewItem == linqFile",
           "group": "inline"
-        },
-        {
-          "command": "linqpadExplorer.closeAllOpenFiles",
-          "when": "view == linqpadQueries && viewItem == openFilesSection",
-          "group": "inline"
-        },
-        {
-          "command": "linqpadExplorer.addToFavorites",
-          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile || viewItem == openFile) && !listMultiSelection",
-          "group": "favorites@1"
-        },
-        {
-          "command": "linqpadExplorer.removeFromFavorites",
-          "when": "view == linqpadQueries && viewItem == favoriteFile && !listMultiSelection",
-          "group": "favorites@2"
         }
       ],
       "editor/title": [
@@ -268,15 +213,6 @@
           "type": "array",
           "default": ["node_modules", ".git", "bin", "obj"],
           "description": "Folder patterns to exclude from the LINQPad Explorer tree view.",
-          "items": {
-            "type": "string"
-          },
-          "scope": "resource"
-        },
-        "linqpadRunner.favoriteFiles": {
-          "type": "array",
-          "default": [],
-          "description": "List of favorite LINQPad files (managed automatically).",
           "items": {
             "type": "string"
           },

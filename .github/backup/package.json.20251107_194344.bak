@@ -111,21 +111,6 @@
         "command": "linqpadExplorer.removeFromFavorites",
         "title": "Remove from Favorites",
         "icon": "$(star-full)"
-      },
-      {
-        "command": "linqpadExplorer.filterFiles",
-        "title": "Filter Files",
-        "icon": "$(filter)"
-      },
-      {
-        "command": "linqpadExplorer.clearFilter",
-        "title": "Clear Filter",
-        "icon": "$(clear-all)"
-      },
-      {
-        "command": "linqpadExplorer.closeAllOpenFiles",
-        "title": "Close All Open Files",
-        "icon": "$(close-all)"
       }
     ],
     "viewsContainers": {
@@ -150,11 +135,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "linqpadExplorer.filterFiles",
-          "when": "view == linqpadQueries",
-          "group": "navigation@0"
-        },
-        {
           "command": "linqpadExplorer.newScript",
           "when": "view == linqpadQueries",
           "group": "navigation@1"
@@ -168,17 +148,12 @@
       "view/item/context": [
         {
           "command": "linqpadExplorer.openFile",
-          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile || viewItem == favoriteFile || viewItem == openFile)",
-          "group": "inline"
-        },
-        {
-          "command": "linqpadExplorer.closeAllOpenFiles",
-          "when": "view == linqpadQueries && viewItem == openFilesSection",
+          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile || viewItem == favoriteFile)",
           "group": "inline"
         },
         {
           "command": "linqpadExplorer.addToFavorites",
-          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile || viewItem == openFile) && !listMultiSelection",
+          "when": "view == linqpadQueries && (viewItem == linqFile || viewItem == recentFile) && !listMultiSelection",
           "group": "favorites@1"
         },
         {

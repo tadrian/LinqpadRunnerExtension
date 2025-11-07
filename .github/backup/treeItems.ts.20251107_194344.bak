@@ -7,9 +7,7 @@ export enum LinqTreeItemType {
     RECENT_SECTION,
     RECENT_FILE,
     FAVORITES_SECTION,
-    FAVORITE_FILE,
-    OPEN_FILES_SECTION,
-    OPEN_FILE
+    FAVORITE_FILE
 }
 
 export class LinqTreeItem extends vscode.TreeItem {
@@ -33,13 +31,6 @@ export class LinqTreeItem extends vscode.TreeItem {
                 arguments: [this]
             };
             this.iconPath = new vscode.ThemeIcon('file-code');
-        } else if (type === LinqTreeItemType.OPEN_FILE) {
-            this.command = {
-                command: 'linqpadExplorer.openFile',
-                title: 'Open File',
-                arguments: [this]
-            };
-            this.iconPath = new vscode.ThemeIcon('file-code', new vscode.ThemeColor('symbolIcon.fileForeground'));
         } else if (type === LinqTreeItemType.FAVORITE_FILE) {
             this.command = {
                 command: 'linqpadExplorer.openFile',
@@ -51,8 +42,6 @@ export class LinqTreeItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('history');
         } else if (type === LinqTreeItemType.FAVORITES_SECTION) {
             this.iconPath = new vscode.ThemeIcon('star-full', new vscode.ThemeColor('symbolIcon.keywordForeground'));
-        } else if (type === LinqTreeItemType.OPEN_FILES_SECTION) {
-            this.iconPath = new vscode.ThemeIcon('files');
         } else if (type === LinqTreeItemType.ROOT_FOLDER) {
             this.iconPath = new vscode.ThemeIcon('folder-library');
             this.description = fsPath;
@@ -62,8 +51,7 @@ export class LinqTreeItem extends vscode.TreeItem {
 
         // Resource URI for file operations
         if (type === LinqTreeItemType.LINQ_FILE || type === LinqTreeItemType.FOLDER || 
-            type === LinqTreeItemType.FAVORITE_FILE || type === LinqTreeItemType.RECENT_FILE ||
-            type === LinqTreeItemType.OPEN_FILE) {
+            type === LinqTreeItemType.FAVORITE_FILE || type === LinqTreeItemType.RECENT_FILE) {
             this.resourceUri = vscode.Uri.file(fsPath);
         }
     }
@@ -84,10 +72,6 @@ export class LinqTreeItem extends vscode.TreeItem {
                 return 'favoritesSection';
             case LinqTreeItemType.FAVORITE_FILE:
                 return 'favoriteFile';
-            case LinqTreeItemType.OPEN_FILES_SECTION:
-                return 'openFilesSection';
-            case LinqTreeItemType.OPEN_FILE:
-                return 'openFile';
             default:
                 return 'item';
         }

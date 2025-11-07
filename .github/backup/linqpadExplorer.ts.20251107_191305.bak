@@ -12,8 +12,6 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
 
     private configManager: LinqpadConfigManager;
     private showRecentFiles: boolean = true;
-    private favoriteFiles: string[] = [];
-    private filterText: string = '';
 
     constructor() {
         this.configManager = new LinqpadConfigManager();
@@ -21,7 +19,6 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
         // Load settings
         const config = vscode.workspace.getConfiguration('linqpadRunner');
         this.showRecentFiles = config.get<boolean>('showRecentFiles', true);
-        this.favoriteFiles = config.get<string[]>('favoriteFiles', []);
     }
 
     refresh(): void {
@@ -36,16 +33,6 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
         if (!element) {
             // Root level - show query locations and optionally recent files
             return this.getRootItems();
-        }
-
-        // Handle open files section
-        if (element.type === LinqTreeItemType.OPEN_FILES_SECTION) {
-            return this.getOpenFileItems();
-        }
-
-        // Handle favorites section
-        if (element.type === LinqTreeItemType.FAVORITES_SECTION) {
-            return this.getFavoriteFileItems();
         }
 
         // Handle recent files section
@@ -64,42 +51,16 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
     private async getRootItems(): Promise<LinqTreeItem[]> {
         const items: LinqTreeItem[] = [];
 
-        // Add open files section first - only count files with visible editors
-        const openLinqEditors = vscode.window.visibleTextEditors.filter(editor => 
-            editor.document.uri.scheme === 'file' && editor.document.fileName.endsWith('.linq')
-        );
-        if (openLinqEditors.length > 0) {
-            items.push(new LinqTreeItem(
-                `Open Files (${openLinqEditors.length})`,
-                LinqTreeItemType.OPEN_FILES_SECTION,
-                '',
-                vscode.TreeItemCollapsibleState.Expanded
-            ));
-        }
-
-        // Add favorites section if there are any favorites
-        if (this.favoriteFiles.length > 0) {
-            items.push(new LinqTreeItem(
-                'Favorites',
-                LinqTreeItemType.FAVORITES_SECTION,
-                '',
-                vscode.TreeItemCollapsibleState.Expanded
-            ));
-        }
-
         // Get query locations from config and VS Code settings
+        const configLocations = this.configManager.getAllQueryLocations();
         const config = vscode.workspace.getConfiguration('linqpadRunner');
-        const autoDetect = config.get<boolean>('autoDetectQueryLocations', true);
         const customLocations = config.get<string[]>('queryLocations', []);
+        const autoDetect = config.get<boolean>('autoDetectQueryLocations', true);
 
         let allLocations: string[] = [];
-        
-        // Add locations from LINQPad config files (QueryLocations.txt and MyScriptLocations.txt)
         if (autoDetect) {
-            allLocations.push(...this.configManager.getQueryLocations());
+            allLocations.push(...configLocations);
         }
-        
-        // Add any custom locations from VS Code settings
         allLocations.push(...customLocations);
 
         // Remove duplicates
@@ -160,61 +121,6 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
         return items;
     }
 
-    private async getFavoriteFileItems(): Promise<LinqTreeItem[]> {
-        const items: LinqTreeItem[] = [];
-
-        for (const filePath of this.favoriteFiles) {
-            if (fs.existsSync(filePath)) {
-                const fileName = path.basename(filePath);
-                // Apply filter if set
-                if (this.filterText && !fileName.toLowerCase().includes(this.filterText.toLowerCase())) {
-                    continue;
-                }
-                const dirName = path.dirname(filePath);
-                items.push(new LinqTreeItem(
-                    fileName,
-                    LinqTreeItemType.FAVORITE_FILE,
-                    filePath,
-                    vscode.TreeItemCollapsibleState.None,
-                    dirName
-                ));
-            }
-        }
-
-        return items;
-    }
-
-    private async getOpenFileItems(): Promise<LinqTreeItem[]> {
-        const items: LinqTreeItem[] = [];
-        const openLinqEditors = vscode.window.visibleTextEditors.filter(editor => 
-            editor.document.uri.scheme === 'file' && editor.document.fileName.endsWith('.linq')
-        );
-
-        // Get unique documents (in case same file is open in multiple editors)
-        const uniqueDocs = new Map<string, vscode.TextDocument>();
-        for (const editor of openLinqEditors) {
-            uniqueDocs.set(editor.document.fileName, editor.document);
-        }
-
-        for (const [filePath, doc] of uniqueDocs) {
-            const fileName = path.basename(filePath);
-            // Apply filter if set
-            if (this.filterText && !fileName.toLowerCase().includes(this.filterText.toLowerCase())) {
-                continue;
-            }
-            const dirName = path.dirname(filePath);
-            items.push(new LinqTreeItem(
-                fileName,
-                LinqTreeItemType.OPEN_FILE,
-                filePath,
-                vscode.TreeItemCollapsibleState.None,
-                dirName
-            ));
-        }
-
-        return items;
-    }
-
     private async getFolderChildren(folderPath: string): Promise<LinqTreeItem[]> {
         const items: LinqTreeItem[] = [];
 
@@ -236,11 +142,6 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
                 
                 // Check if should be excluded
                 if (this.shouldExclude(fullPath, excludePatterns)) {
-                    continue;
-                }
-
-                // Apply filter if set
-                if (this.filterText && !entry.name.toLowerCase().includes(this.filterText.toLowerCase())) {
                     continue;
                 }
 
@@ -298,37 +199,5 @@ export class LinqpadExplorer implements vscode.TreeDataProvider<LinqTreeItem> {
             }
         }
         return false;
-    }
-
-    async addToFavorites(filePath: string): Promise<void> {
-        if (!this.favoriteFiles.includes(filePath)) {
-            this.favoriteFiles.push(filePath);
-            await this.saveFavorites();
-            this.refresh();
-        }
-    }
-
-    async removeFromFavorites(filePath: string): Promise<void> {
-        const index = this.favoriteFiles.indexOf(filePath);
-        if (index !== -1) {
-            this.favoriteFiles.splice(index, 1);
-            await this.saveFavorites();
-            this.refresh();
-        }
-    }
-
-    private async saveFavorites(): Promise<void> {
-        const config = vscode.workspace.getConfiguration('linqpadRunner');
-        await config.update('favoriteFiles', this.favoriteFiles, vscode.ConfigurationTarget.Global);
-    }
-
-    setFilter(text: string): void {
-        this.filterText = text;
-        this.refresh();
-    }
-
-    clearFilter(): void {
-        this.filterText = '';
-        this.refresh();
     }
 }

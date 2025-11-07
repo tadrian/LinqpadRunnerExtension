@@ -2,13 +2,25 @@
 
 All notable changes to this project are documented here. Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.8.0] - 2025-11-02
+## [1.8.0] - 2025-11-07
 
-- NEW: LINQPad Explorer sidebar pane
-- Browse all query locations from LINQPad configuration
-- Recent files section with quick access
-- Folder tree navigation with auto-discovery
-- Click to open .linq files directly
+### Added
+- Query Folders Explorer pane in sidebar
+- Open Files section showing currently opened .linq files
+- Close All Open Files button on Open Files section
+- Favorites system: star/unstar files, shows at top
+- Search/filter files across all sections and folders
+- New Script button in toolbar for quick file creation
+- Auto-detects query locations from LINQPad client configuration
+- Real-time updates when opening/closing files
+
+### Changed
+- Only shows folders configured in LINQPad client (no hardcoded paths)
+- Improved file organization with collapsible sections
+
+### Fixed
+- Open Files section now tracks only visible editors
+- Proper refresh on file open/close events
 
 ## [1.7.8] - 2025-11-01
 

@@ -1089,99 +1089,14 @@ async Task Main()
 
     // Command to open a .linq file from the tree
     const openFileCommand = vscode.commands.registerCommand('linqpadExplorer.openFile', async (item: LinqTreeItem) => {
-        if (item && item.fsPath) {
-            const document = await vscode.workspace.openTextDocument(item.fsPath);
+        if (item.resourceUri) {
+            const document = await vscode.workspace.openTextDocument(item.resourceUri);
             await vscode.window.showTextDocument(document);
         }
     });
 
     // Command to refresh the tree view
     const refreshCommand = vscode.commands.registerCommand('linqpadExplorer.refresh', () => {
-        linqpadExplorer.refresh();
-    });
-
-    // Command to create a new LINQPad script from the tree view
-    const newScriptCommand = vscode.commands.registerCommand('linqpadExplorer.newScript', async () => {
-        // Reuse the existing newFile command logic
-        await vscode.commands.executeCommand('linq-runner.newFile');
-    });
-
-    // Command to add a file to favorites
-    const addToFavoritesCommand = vscode.commands.registerCommand('linqpadExplorer.addToFavorites', async (item: LinqTreeItem) => {
-        if (item && item.fsPath) {
-            await linqpadExplorer.addToFavorites(item.fsPath);
-            vscode.window.showInformationMessage(`Added ${path.basename(item.fsPath)} to favorites`);
-        }
-    });
-
-    // Command to remove a file from favorites
-    const removeFromFavoritesCommand = vscode.commands.registerCommand('linqpadExplorer.removeFromFavorites', async (item: LinqTreeItem) => {
-        if (item && item.fsPath) {
-            await linqpadExplorer.removeFromFavorites(item.fsPath);
-            vscode.window.showInformationMessage(`Removed ${path.basename(item.fsPath)} from favorites`);
-        }
-    });
-
-    // Command to filter files in the tree
-    const filterFilesCommand = vscode.commands.registerCommand('linqpadExplorer.filterFiles', async () => {
-        const filterText = await vscode.window.showInputBox({
-            prompt: 'Enter text to filter files',
-            placeHolder: 'Filter by filename...',
-            value: ''
-        });
-        
-        if (filterText !== undefined) {
-            if (filterText) {
-                linqpadExplorer.setFilter(filterText);
-            } else {
-                linqpadExplorer.clearFilter();
-            }
-        }
-    });
-
-    // Command to clear filter
-    const clearFilterCommand = vscode.commands.registerCommand('linqpadExplorer.clearFilter', () => {
-        linqpadExplorer.clearFilter();
-    });
-
-    // Command to close all open linq files
-    const closeAllOpenFilesCommand = vscode.commands.registerCommand('linqpadExplorer.closeAllOpenFiles', async () => {
-        const linqDocs = vscode.workspace.textDocuments.filter(doc => 
-            doc.uri.scheme === 'file' && doc.fileName.endsWith('.linq')
-        );
-        
-        const count = linqDocs.length;
-        
-        // Close all linq editors
-        for (const doc of linqDocs) {
-            const editors = vscode.window.visibleTextEditors.filter(e => e.document === doc);
-            for (const editor of editors) {
-                await vscode.window.showTextDocument(doc, { viewColumn: editor.viewColumn, preserveFocus: true });
-                await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-            }
-        }
-        
-        // Force refresh after a short delay to ensure all editors are closed
-        setTimeout(() => {
-            linqpadExplorer.refresh();
-        }, 100);
-        
-        if (count > 0) {
-            vscode.window.showInformationMessage(`Closed ${count} .linq file(s)`);
-        }
-    });
-
-    // Listen for document open/close events to refresh open files section
-    const docOpenListener = vscode.workspace.onDidOpenTextDocument(() => {
-        linqpadExplorer.refresh();
-    });
-    
-    const docCloseListener = vscode.workspace.onDidCloseTextDocument(() => {
-        linqpadExplorer.refresh();
-    });
-
-    // Also listen for visible editor changes (when tabs are shown/hidden)
-    const visibleEditorsListener = vscode.window.onDidChangeVisibleTextEditors(() => {
         linqpadExplorer.refresh();
     });
 
@@ -1195,16 +1110,7 @@ async Task Main()
         documentSymbolProvider,
         treeView,
         openFileCommand,
-        refreshCommand,
-        newScriptCommand,
-        addToFavoritesCommand,
-        removeFromFavoritesCommand,
-        filterFilesCommand,
-        clearFilterCommand,
-        closeAllOpenFilesCommand,
-        docOpenListener,
-        docCloseListener,
-        visibleEditorsListener
+        refreshCommand
     );
 }
 
