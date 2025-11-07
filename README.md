@@ -12,18 +12,20 @@ Execute `.linq` files directly in VS Code using LinqPad's LPRun tool.
 
 ## Version Highlights
 
-**1.7.1**
+**1.8.0**
 
-- Maintenance: GitHub links corrected
+- Query Folders Explorer pane
+- Open Files section with close all button
+- Favorites system with star/unstar
+- Search/filter files across folders
+- New Script button in toolbar
+- Auto-detects LINQPad configuration
 
 **1.7.0**
 
 - Interactive Results Viewer
 - JSON tree visualization
-- Sortable tables
-- CSV export
-- Collapsible sections
-- Multi-tab support
+- Sortable tables with CSV export
 
 **1.6.1**
 
