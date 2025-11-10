@@ -1,3 +1,4 @@
+import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -5,6 +6,8 @@ export class ResultViewer {
     private static currentPanel: vscode.WebviewPanel | undefined;
     private static results: any[] = [];
     private static placement: 'right' | 'below' = 'right';
+    private static currentProcess: cp.ChildProcess | undefined;
+    private static context: vscode.ExtensionContext | undefined;
 
     public static show(context: vscode.ExtensionContext, output: string, label?: string) {
         const columnToShowIn = vscode.window.activeTextEditor
@@ -98,6 +101,102 @@ export class ResultViewer {
         }
     }
 
+    public static clearForNewRun() {
+        // Clear existing results when starting a new script run
+        ResultViewer.results = [];
+        if (ResultViewer.currentPanel) {
+            ResultViewer.currentPanel.webview.postMessage({
+                type: 'clearForNewRun'
+            });
+        }
+    }
+
+    public static ensurePanel(context: vscode.ExtensionContext) {
+        const columnToShowIn = vscode.window.activeTextEditor
+            ? vscode.ViewColumn.Beside
+            : vscode.ViewColumn.One;
+
+        if (!ResultViewer.currentPanel) {
+            ResultViewer.currentPanel = vscode.window.createWebviewPanel(
+                'linqpadResults',
+                'LinqPad Results',
+                columnToShowIn,
+                {
+                    enableScripts: true,
+                    retainContextWhenHidden: true,
+                    localResourceRoots: [
+                        vscode.Uri.file(path.join(context.extensionPath, 'src', 'webview'))
+                    ]
+                }
+            );
+
+            ResultViewer.currentPanel.onDidDispose(() => {
+                ResultViewer.currentPanel = undefined;
+                ResultViewer.results = [];
+            });
+
+            ResultViewer.currentPanel.webview.onDidReceiveMessage(
+                message => {
+                    switch (message.type) {
+                        case 'copy':
+                            vscode.env.clipboard.writeText(message.text);
+                            vscode.window.showInformationMessage('Copied to clipboard');
+                            break;
+                        case 'export':
+                            ResultViewer.exportToCsv(message.data);
+                            break;
+                        case 'closeViewer':
+                            if (ResultViewer.currentPanel) ResultViewer.currentPanel.dispose();
+                            break;
+                        case 'stopExecution':
+                            ResultViewer.stopExecution();
+                            break;
+                    }
+                },
+                undefined,
+                context.subscriptions
+            );
+
+            // Set initial HTML content
+            ResultViewer.currentPanel.webview.html = ResultViewer.getWebviewContent(
+                ResultViewer.currentPanel.webview,
+                context.extensionPath
+            );
+        } else {
+            ResultViewer.currentPanel.reveal(columnToShowIn);
+        }
+        
+        ResultViewer.context = context;
+    }
+
+    public static setCurrentProcess(process: cp.ChildProcess) {
+        ResultViewer.currentProcess = process;
+    }
+
+    public static notifyExecutionStarted() {
+        if (ResultViewer.currentPanel) {
+            ResultViewer.currentPanel.webview.postMessage({
+                type: 'executionStarted'
+            });
+        }
+    }
+
+    public static notifyExecutionEnded() {
+        if (ResultViewer.currentPanel) {
+            ResultViewer.currentPanel.webview.postMessage({
+                type: 'executionEnded'
+            });
+        }
+        ResultViewer.currentProcess = undefined;
+    }
+
+    private static stopExecution() {
+        if (ResultViewer.currentProcess) {
+            ResultViewer.currentProcess.kill();
+            vscode.window.showInformationMessage('Script execution stopped');
+        }
+    }
+
     private static parseOutput(output: string, label?: string): any {
         const timestamp = new Date().toLocaleTimeString();
         
@@ -181,11 +280,44 @@ export class ResultViewer {
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--vscode-panel-border);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .header h1 {
             font-size: 20px;
             font-weight: 600;
+            flex: 1;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: var(--vscode-editor-lineHighlightBackground);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-indicator.running::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--vscode-charts-green);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
         }
 
         .actions {
@@ -452,7 +584,11 @@ export class ResultViewer {
 <body>
     <div class="header">
         <h1>🔍 Interactive Results Viewer</h1>
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <span class="status-indicator" id="statusIndicator">⏳ Running...</span>
+        </div>
         <div class="actions">
+            <button id="stopBtn" onclick="stopExecution()" style="display: none;">⏹ Stop</button>
             <a class="action-link" onclick="closeViewer()">Close</a>
             <a class="action-link" onclick="clearResults()">Clear</a>
             <a class="action-link" onclick="copyAll()">Copy</a>
@@ -472,8 +608,46 @@ export class ResultViewer {
             if (message.type === 'updateResults') {
                 results = message.results;
                 renderResults();
+            } else if (message.type === 'clearForNewRun') {
+                results = [];
+                renderResults();
+            } else if (message.type === 'executionStarted') {
+                showRunningStatus();
+            } else if (message.type === 'executionEnded') {
+                hideRunningStatus();
             }
         });
+
+        function showRunningStatus() {
+            const statusBar = document.getElementById('statusBar');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const stopBtn = document.getElementById('stopBtn');
+            if (statusBar) {
+                statusBar.style.display = 'flex';
+                statusIndicator.className = 'status-indicator running';
+                statusIndicator.textContent = '⏳ Running...';
+            }
+            if (stopBtn) stopBtn.style.display = 'inline-block';
+        }
+
+        function hideRunningStatus() {
+            const statusBar = document.getElementById('statusBar');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const stopBtn = document.getElementById('stopBtn');
+            if (statusBar) {
+                statusBar.style.display = 'none';
+            }
+            if (stopBtn) stopBtn.style.display = 'none';
+        }
+
+        function stopExecution() {
+            vscode.postMessage({ type: 'stopExecution' });
+            const statusIndicator = document.getElementById('statusIndicator');
+            if (statusIndicator) {
+                statusIndicator.className = 'status-indicator';
+                statusIndicator.textContent = '⏹ Stopped';
+            }
+        }
 
         function closeViewer() {
             vscode.postMessage({ type: 'closeViewer' });
@@ -481,7 +655,7 @@ export class ResultViewer {
 
         function renderResults() {
             if (results.length === 0) {
-                document.getElementById('content').innerHTML = '<div class="no-results">No results yet. Run a LinqPad script to see results here.</div>';
+                document.getElementById('content').innerHTML = '<div class="no-results">Waiting for output...</div>';
                 document.getElementById('tabs').innerHTML = '';
                 return;
             }

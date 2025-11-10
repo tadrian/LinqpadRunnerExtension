@@ -2,7 +2,7 @@
 echo ========================================
 echo LinqPad Runner Extension Installer
 echo VS Code Insiders Edition
-echo Version 1.8.0
+echo Version 1.8.1
 echo ========================================
 echo.
 
@@ -46,26 +46,22 @@ if %errorlevel% neq 0 (
     echo ERROR: Installation failed!
     echo.
     echo Make sure VS Code Insiders is installed and 'code-insiders' is in your PATH.
-    pause>
+    pause
     exit /b %errorlevel%
 )
 
 echo.
-echo Step 5: Reloading VS Code Insiders...
-code-insiders --command workbench.action.reloadWindow
-timeout /t 2 /nobreak >nul
-
-echo.
 echo ========================================
-echo SUCCESS! Extension installed and reloaded!
+echo SUCCESS! Extension installed!
 echo ========================================
 echo.
 echo IMPORTANT: For extension changes to fully take effect:
 echo 1. Close ALL VS Code Insiders windows completely
 echo 2. Reopen VS Code Insiders
-echo 3. Check the LINQPad Query Folders view for new features:
-echo    - New Script button in toolbar
-echo    - Right-click menu with "Add to Favorites"
-echo    - Favorites section at top when files are starred
+echo 3. Test the new features:
+echo    - Viewer shows running status with pulsing indicator
+echo    - Stop button appears during execution
+echo    - Results stream in real-time like console
+echo    - Click Stop to terminate long-running scripts
 echo.
 pause

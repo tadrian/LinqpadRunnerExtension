@@ -543,30 +543,28 @@ To fix this:
 
         let hasOutputStarted = false;
         let capturedOutput = '';
-        let outputBuffer = '';
-        let inDumpSection = false;
-        let dumpLabel = '';
 
         // Execute LPRun
         const child = cp.spawn(lprunPath, [tempFileName], {
             cwd: path.dirname(document.fileName)
         });
 
-        // Open the interactive viewer immediately with a running placeholder
-        // so users see the preview window while the process is still executing.
+        // Ensure viewer panel exists and clear for new run
         if (showViewer) {
             try {
-                ResultViewer.show(context, '⏳ Running...', 'Running');
+                ResultViewer.ensurePanel(context);
+                ResultViewer.clearForNewRun();
+                ResultViewer.setCurrentProcess(child);
+                ResultViewer.notifyExecutionStarted();
             } catch (e) {
                 // Non-fatal: ensure runtime doesn't crash if viewer cannot open
-                console.log('Could not open ResultViewer immediately:', e);
+                console.log('Could not open/clear ResultViewer:', e);
             }
         }
 
         child.stdout?.on('data', (data) => {
             const output = data.toString();
             capturedOutput += output;
-            outputBuffer += output;
 
             if (!hasOutputStarted) {
                 if (showConsole) {
@@ -580,38 +578,12 @@ To fix this:
                 outputChannel.append(output);
             }
 
-            // Send to interactive viewer if enabled
+            // Send to interactive viewer if enabled - stream immediately like console
             if (showViewer) {
-                // Try to extract label from output (Dumpify format: "Label: value" or emoji + text)
-                const labelMatch = output.match(/(?:^|\n)([^:\n]+):\s*$/m) ||
-                    output.match(/(?:^|\n)((?:🎉|✅|📋|🎯|⚡)[^:\n]+)/);
-
-                if (labelMatch) {
-                    dumpLabel = labelMatch[1].trim();
-                }
-
-                // Check if we have complete JSON object/array
-                const hasCompleteJson = (str: string) => {
-                    const trimmed = str.trim();
-                    if (trimmed.startsWith('{') && trimmed.endsWith('}')) return true;
-                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) return true;
-                    if (trimmed.startsWith('<') && trimmed.includes('</')) return true; // HTML
-                    return false;
-                };
-
-                // Send buffered output when we detect:
-                // - Double newline (Dumpify sections)
-                // - Horizontal rules
-                // - Complete JSON objects
-                // - Single newline with complete JSON
-                const shouldSend = output.includes('\n\n') || 
-                                 output.includes('──') ||
-                                 (output.includes('\n') && hasCompleteJson(outputBuffer));
-
-                if (shouldSend && outputBuffer.trim()) {
-                    ResultViewer.show(context, outputBuffer.trim(), dumpLabel || 'Output');
-                    outputBuffer = '';
-                    dumpLabel = '';
+                // Stream output directly without complex buffering
+                // This ensures viewer updates in real-time just like the console
+                if (output.trim()) {
+                    ResultViewer.show(context, output.trim(), 'Output');
                 }
             }
         });
@@ -627,12 +599,20 @@ To fix this:
             if (showConsole) {
                 outputChannel.append(data.toString());
             }
+            
+            // Send errors to viewer as well
+            if (showViewer) {
+                const errorOutput = data.toString();
+                if (errorOutput.trim()) {
+                    ResultViewer.show(context, errorOutput.trim(), '⚠️ Errors');
+                }
+            }
         });
 
         child.on('close', (code) => {
-            // Send any remaining buffered output
-            if (showViewer && outputBuffer.trim()) {
-                ResultViewer.show(context, outputBuffer.trim(), dumpLabel || 'Output');
+            // Notify viewer that execution ended
+            if (showViewer) {
+                ResultViewer.notifyExecutionEnded();
             }
 
             if (showConsole) {
@@ -685,7 +665,7 @@ To fix this:
                 const examplePath = path.join(workspaceFolder.uri.fsPath, selection.description);
                 try {
                     const document = await vscode.workspace.openTextDocument(examplePath);
-                    await vscode.window.showTextDocument(document);
+                    await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
                 } catch (error) {
                     vscode.window.showErrorMessage(`Could not open example: ${error}`);
                 }
@@ -765,7 +745,7 @@ class MyClass
         try {
             fs.writeFileSync(filePath, defaultTemplate, 'utf8');
             const document = await vscode.workspace.openTextDocument(filePath);
-            await vscode.window.showTextDocument(document);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
             vscode.window.showInformationMessage(`✅ Created new .linq file: ${fileName}`);
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to create file: ${error}`);
@@ -848,7 +828,7 @@ async Task Main()
         try {
             fs.writeFileSync(filePath, dumpifyTemplate, 'utf8');
             const document = await vscode.workspace.openTextDocument(filePath);
-            await vscode.window.showTextDocument(document);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
             vscode.window.showInformationMessage(`✅ Created new .linq file with Dumpify support: ${fileName}`);
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to create file: ${error}`);
@@ -1091,7 +1071,7 @@ async Task Main()
     const openFileCommand = vscode.commands.registerCommand('linqpadExplorer.openFile', async (item: LinqTreeItem) => {
         if (item && item.fsPath) {
             const document = await vscode.workspace.openTextDocument(item.fsPath);
-            await vscode.window.showTextDocument(document);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
         }
     });
 
@@ -1185,6 +1165,16 @@ async Task Main()
         linqpadExplorer.refresh();
     });
 
+    // Intercept when .linq files are opened and ensure they're always in Group 1
+    const textEditorListener = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+        if (editor && editor.document.fileName.endsWith('.linq')) {
+            // If the .linq file is not in ViewColumn.One, move it there
+            if (editor.viewColumn !== vscode.ViewColumn.One) {
+                await vscode.window.showTextDocument(editor.document, vscode.ViewColumn.One, false);
+            }
+        }
+    });
+
     context.subscriptions.push(
         disposable,
         openExamplesDisposable,
@@ -1204,7 +1194,8 @@ async Task Main()
         closeAllOpenFilesCommand,
         docOpenListener,
         docCloseListener,
-        visibleEditorsListener
+        visibleEditorsListener,
+        textEditorListener
     );
 }
 

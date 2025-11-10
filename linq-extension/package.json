@@ -2,7 +2,7 @@
   "name": "linqpad-runner",
   "displayName": "LinqPad Runner",
   "description": "Execute LinqPad .linq files in VS Code using LPRun command-line tool with C# syntax highlighting",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "publisher": "ThomasAdrian",
   "icon": "ofPP1XEw_400x400.jpg",
   "author": {

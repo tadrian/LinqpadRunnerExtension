@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here. Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] - 2025-11-10
+
+### Added
+
+- Real-time streaming output to Interactive Results Viewer
+- Stop button to terminate running scripts
+- Running indicator (green dot) when script is executing
+- Error output (stderr) now displays in viewer with ⚠️ label
+- Auto-redirect: .linq files always open in Editor Group 1
+
+### Changed
+
+- Viewer updates in real-time as output arrives (no more waiting for completion)
+- Removed "Loading..." placeholder - shows "Waiting for output..." instead
+- Output streams immediately like console (no complex buffering)
+- .linq files automatically move to Group 1 even when opened from other groups
+
+### Fixed
+
+- Viewer now shows compilation errors and warnings (stderr)
+- .linq files no longer open in Group 2 when Results Viewer is visible
+- Consistent editor group behavior regardless of active panel
+
 ## [1.8.0] - 2025-11-07
 
 ### Added
